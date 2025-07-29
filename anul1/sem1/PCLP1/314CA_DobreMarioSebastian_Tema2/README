@@ -1,0 +1,39 @@
+Documentatie code marching_squares
+
+Code-ul algoritmului marching_squares a fost impartit in 4 zone:  
+	I) marching_squares - program principal  
+	II) fisierPPM - program functii gestionare imagine  
+	III) marching - program gestionare noduri retea  
+	IV) comenzi - comenzile lui Gigel  
+
+FisierPPM  
+	Aceasta sectiune de code contine toate functiile necesare pentru alocarea
+	dinamica a imaginii (plus programare defensiva), eliberarea memoriei
+	folosite, luminozitatea fiecarui pixel, citirea si printarea pixelilor 
+	si algoritmul de resize (operatie de zoom in de x4). De asemenea, aici a fost
+	declarata structura RGB_t, care contine 3 variabile de tipul int, folosite la 
+	memorarea celor trei culori (RED, GREEN, BLUE).  
+
+	Limitari:  
+	Maximul la care poate fi adusa imaginea prin redimensionare este de 8192x8192,
+	iar alocarea imaginii consuma aproximativ 2 GB pe memoria HEAP.  
+
+Marching  
+	Contine functiile necesare pentru initializarea dinamica a retelei de noduri,
+	initializarea acesteia si eliberarea memoriei. Functia init_contur a fost
+	construita pe baza altor 16 functii mai mici care aloca pe stiva o matrice
+	de 16x16. Am ales aceasta abordare deoarece nu mi-am dorit sa tin in memoria
+	calculatorului cele 16 contururi, ci mi-am dorit sa am o varianta rapida de a 
+	gasi conturul potrivit.  
+
+Comenzi  
+	Este o singura functie care identifica ce comanda a fost citita de 
+	Gigel: READ, WRITE, RESIZE (gasite in fisierPPM), GRID, INIT_CONTUR, 
+	MARCH (gasite in marching). Functiile din fisierPPM sunt independente, 
+	iar cele din marching se intersecteaza in comanda MARCH, care calculeaza 
+	in momentul respectiv GRID-ul, calculeaza valoarea binara a fiecarui bloc, 
+	cauta conturul potrivit si aseaza in poza initiala.
+
+Marching_squares
+	In programul pringipal se gasete o funtie de cititre si alocare a pozei,
+	si o bucla while, care verifica daca comanda este valida si diferita de EXIT.

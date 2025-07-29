@@ -1,0 +1,30 @@
+1. Am ales să abordez o metodă intuitivă de rezolvare ce se bazează pe gândire
+logică și critică. Prima dată am initializat jucătorul, adăugând punctele de HP
+la HP-ul inițial și să salvez shiludrile intr un vector. Am sortat vectorul
+descrescător, deoarece am vrut să am o metodă lejeră de a putea alege cel mai
+mare shild mai mic decât dmg dat de respectivul boss sau de a alege rapid cel
+mai mic shild (fiind ultimul). În bucla "for" am pus condiția de oprire HP
+pentru a opri for ul când jucătorul moare.
+2. Am privit fiecare forma ca fiind o matrice mai mare alcătuită din spații
+și caracterul '*'. Pătratul este o matrice pătratică plină de *, la fel și
+dreptunghiul. Pătratul rotit la 45 de grade este o * ce se departeaza egal
+departat de elementul din mijloc al respectivei matrici până ajunge să fie
+exact cât latura respectivei matrici. Partea de jos este algoritmul inversat.
+Triungiurile sunt matrici patratice cu elemetele doar deasupra/sub diagonalele
+matricei respective. Unghiul negativ a fost adus la pozitivitate adunând
+circumferințe de cerc până ajunge să fie din primul cadran. Crucea este
+un plus ce este format doar din linia și colana mijlocie sau din cele 2 diagonale.
+Fereasta este o cruce rotita la 90 plus elementele de pe primul patrat al matricei respective.
+3. Pentru prima lege mi am imaginat un graf orientat ce are o listă a nodurilor
+de intrare și ieșire. Dacă curentul de pe fir este negativ am inversat sensul
+obișnuit al drumului (out -> in). Am respectat legea lui kirkoffLa fel și pentru
+cea de a 2 lege. M am folosit de intructiuniile din enunț încercând să arăt că
+tensiunea de pe fir este egală cu cea dată de rezistențe. La cele 2 legi am folosit
+o aproximare de 8 zecimale, inițializand o constantă cu 0.00000001 și am comparat cu modulul diferenței.
+4. Am folosit o abordare matematică. Am privit bolcul de leduri precum o matrice,
+fiind împărțită la rândul ei în alte matrici. Fiecare segmet era o matrice dreptunghiulara,
+ușurând munca și reintializarea matricei la schimbarea cifrei. Am privit mutarea mutarea de
+lumini intr un sistem xOy, la fiecare mutare sus jos am folosit drepata oY, iar stânga dreapta
+am folosit oX. Operația de MOD a fost folosită pentru eficiența programului, deoarece dacă numărul
+de tranziții era divizibil cu dimensiunea tabloului, acesta rămâne neschimbat. Asocierea cu un
+sistem xOy mi a fost de folos când era vorba să fie mutat în sus/ dreapta și în sens opus.

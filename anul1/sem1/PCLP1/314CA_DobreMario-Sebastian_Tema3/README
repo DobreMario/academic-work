@@ -1,0 +1,105 @@
+CODE STRUCTURE:
+	- main.c = main program;
+	- command.c = command decider;
+	- edit.c = edit commands;
+	- pbm.c = load and save commands.
+
+MAIN PROGRAM
+	main.c is the shortest program. Here you find the statement of height ('n'),
+	width ('m'), and photo. Otherwise, startprogram marks the beginning of the
+	program, and endprogram is a function to free memory after the EXIT command
+	(see description in the command.c section, myexit).
+
+COMMAND DECIDER
+	- startprogram = keeps the program active;
+	- endprogram = frees memory (I love ponies);
+	- commands = the most important function in this section, the DICTATOR.
+	  This function finds the command code (see command.h) and calls the
+	  specific function.
+	- myexit = just finishes the program;
+	- save + load = additions to the functions in pbm.c;
+	- findcommand = just finds the command code (see command.h).
+	NOTE: I decided to make the EXIT's code a prime number for easy recognition.
+
+EDIT COMMANDS
+	NOTE: edit.c is the most complex part of the code. I will describe the most
+	important functions.
+	(*) Selection functions:
+		- check_coordinates (1)
+		- check_selection (2)
+		- select
+		  - select is the mother function of (1) and (2). It has two options:
+		    SELECT ALL and SELECT num1, num2, num3, num4. The function reads a
+		    string and finds the option. SELECT num1, num2, num3, num4 is the
+		    complex option. num1, num2, num3, num4 is a string, and the program
+		    converts it to 4 integers.
+	(*) Crop functions:
+		- crop_for_p36 (1)
+		- crop_for_p1245 (2)
+		- crop
+		  - crop is the mother function of (1) and (2). (1) and (2) are similar;
+		    they have the same code structure but for different formats. I chose
+		    to add a temporary matrix with the selected photo's elements, free
+		    the photo matrix, and reallocate the photo matrix with the
+		    temporary matrix's elements.
+	(*) Apply functions:
+		- check_apply (1)
+		- supportmatrix (2)
+		- newpixelvalue (3)
+		- settmp_var (4)
+		- setpx[_blut] (5)
+		- copypx (6)
+		- edge, sharpen, blur, gaussian_blur (7)
+		- apply (8)
+		  NOTE: edge, sharpen, blur, and gaussian_blur have the same code
+		  structure, but blur functions use setpx_blut because the blur effect
+		  has a constant.
+		  - apply is the mother function of (7). This function finds the effect
+		    code (see edit.h) and calls the specific function.
+	(*) Equalize functions:
+		- equalize_px (1)
+		- set_equalized_px (2)
+		- equalize (3)
+		  - equalize is the mother function of (1) and (2). (1) and (2) implement
+		    the mathematical formula from the statement.
+	(*) Rotate functions:
+		- checkangle (1)
+		- transpose_rgb (2)
+		- transpose_simple (3)
+		- transpose (4)
+		- supportforpermutation_rgb (5)
+		- supportforpermutation_simple (6)
+		- permutation_columns (7)
+		- rotate (8)
+		  - Initially, I wrote on a sheet a matrix rotated at various angles. I
+		    noticed that rows become columns, and columns become rows. This is
+		    the transposition operation [(2), (3)]. The final step was to mirror
+		    the matrix [(5), (6)].
+		  - rotate is the mother function of (4) and (7).
+	(*) Histogram functions:
+		- calculatebins (1)
+		- max_frequencies (2)
+		- bins_printf (3)
+		- histogram (4)
+		  - histogram is the mother function of (1), (2), and (3).
+	(*) Support functions:
+		- identifyformat_for_editing = finds the photo format;
+		- px_correction = clamps a value;
+		- approx = rounds a value;
+		- myswap = swaps two integers;
+		- init_h = sets the frequency of each color.
+
+LOAD AND SAVE COMMANDS
+	This section has 4 main functions:
+		- alloc_memory = allocates a square zone;
+		- free_memory;
+		- load_PBM;
+		- save_PBM.
+	NOTE: I use a square allocation because it simplifies the rotate function.
+	load_PBM reads from a file. save_PBM writes to a file. They have a similar
+	code structure: find the format code (see pbm.h) and call the specific
+	function.
+	NOTE: I use a union to allocate a photo for easy allocation and memory
+	management.
+
+!!! FIND ALL LIBRARIES IN mylibraries.h !!!
