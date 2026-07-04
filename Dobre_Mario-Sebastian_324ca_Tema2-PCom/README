@@ -1,0 +1,155 @@
+# Reliable Transport Protocol over UDP
+
+**Name:** Dobre Mario-Sebastian
+
+**Group:** 324CA
+
+---
+
+# Overview
+
+This project consists of designing and implementing a connection-oriented transport protocol built on top of UDP, simulating the behavior of TCP. The protocol aims to provide reliable data transfer by guaranteeing packet delivery without loss and in the correct order.
+
+The implementation supports multiple concurrent connections, limits the data flow according to both network capacity (Bandwidth-Delay Product) and receiver capacity (Flow Control), and handles packet loss through a hybrid ARQ mechanism (combining *Selective Repeat* / *Fast Retransmit* and *Go-Back-N* upon timeout).
+
+---
+
+# Header Structure
+
+The protocol uses two distinct header types (both optimized in size and mapped to *Network Byte Order*) to efficiently separate data traffic from control information.
+
+## 1. Control Header (`poli_tcp_ctrl_hdr`)
+
+Used for connection establishment and acknowledgments.
+
+* **protocol_id** (8 bits): Unique protocol identifier (value `42`).
+* **conn_id** (8 bits): Internal connection identifier.
+* **type** (8 bits): Control message type (`FLAG_SYN`, `FLAG_SYN_ACK`, `FLAG_ACK`).
+* **ack_num** (16 bits): Next expected sequence number from the peer.
+* **recv_window** (16 bits): Available space in the receiver buffer (used for Flow Control).
+
+## 2. Data Header (`poli_tcp_data_hdr`)
+
+Attached exclusively to data packets.
+
+* **protocol_id** (8 bits): Unique protocol identifier (value `42`).
+* **conn_id** (8 bits): Connection identifier.
+* **type** (8 bits): Message type (`FLAG_DATA`).
+* **seq_num** (16 bits): Sequence number of the current packet.
+* **len** (16 bits): Payload size contained in the packet.
+
+---
+
+# Connection Establishment Diagram
+<small>*Note: The following interaction diagram is transcribed from my initial paper sketches, used to help me visualize the dynamic port allocation and 3-way handshake.*</small>
+```text
+ Client (Free)                               Server (Listening on Port 8032)
+       |                                                    |
+       |  [1] FLAG_SYN (conn_id_local, req_port)            |
+       |--------------------------------------------------->|
+       |                                                    | (Server performs bind()
+       |                                                    |  on port 0. The OS
+       |                                                    |  allocates ephemeral
+       |                                                    |  port 'X')
+       |  [2] FLAG_SYN_ACK (payload: port X)                |
+       |<---------------------------------------------------|
+       |                                                    |
+       |  (Client updates destination port to 'X')          |
+       |                                                    |
+       |  [3] FLAG_ACK                                      |
+       |--------------------------------------------------->| (Dedicated communication)
+
+```
+
+---
+
+# Connection Establishment
+
+The protocol uses a modified **3-Way Handshake**, which is essential for supporting client multiplexing (multiple simultaneous connections on the server).
+
+### 1. Initial Requests (SYN)
+
+All clients send their connection initialization packet to the server's public listening port (`8032`).
+
+### 2. Connection Delegation (SYN-ACK) and Dynamic Port Allocation
+
+To avoid overloading the main listening socket, the server creates a dedicated socket for every accepted client. This socket is assigned a local address by calling `bind()` with the port set to `0` (`htons(0)`).
+
+By doing so, the operating system automatically selects and allocates a free ephemeral port. The newly assigned port (retrieved using `getsockname()`) is included in the payload of the `FLAG_SYN_ACK` packet sent back to the client.
+
+### 3. Confirmation and Isolation (ACK)
+
+The client extracts the new port number, updates its destination address structure (`servaddr`), and sends the final `ACK` packet directly to the newly allocated port.
+
+From this point onward, the communication takes place exclusively on this dedicated socket, ensuring complete isolation between concurrent client sessions.
+
+### 4. Thread Safety
+
+On the server side, connection identifier generation (`conn_id`) and registration of the new socket into the polling infrastructure (`data_fds`) are protected using a global mutex (`setup_lock`).
+
+This guarantees that concurrent connection requests cannot interfere with each other during the setup phase.
+
+---
+
+# Data Transmission Diagram
+<small>*Note: The following interaction diagram is transcribed from my initial paper sketches, used to help me visualize the behavior of the sliding window, out-of-order reception, and fast retransmit mechanism.*</small>
+```text
+ Sender                                                Receiver
+   |                                                      |
+   | --- FLAG_DATA (Seq = 1) ---------------------------> | (Buffer = {1}, Ack=2)
+   | --- FLAG_DATA (Seq = 2) ----- [ LOST! ]              |
+   | --- FLAG_DATA (Seq = 3) ---------------------------> | (Out-of-order packet. Ack=2)
+   | --- FLAG_DATA (Seq = 4) ---------------------------> | (Out-of-order packet. Ack=2)
+   |                                                      |
+   | <--- FLAG_ACK (AckNum = 2) ------------------------- |
+   | <--- FLAG_ACK (AckNum = 2) --- (1st Duplicate) ----- |
+   | <--- FLAG_ACK (AckNum = 2) --- (2nd Duplicate) ----- |
+   | <--- FLAG_ACK (AckNum = 2) --- (3rd Duplicate) ----- |
+   |                                                      |
+ (Fast Retransmit Triggered!)                             |
+   | --- FLAG_DATA (Seq = 2) ---------------------------> |
+   |                                                      | (Finds {3,4} in buffer)
+   | <--- FLAG_ACK (AckNum = 5) ------------------------- | (Acknowledges entire batch)
+
+```
+
+---
+
+# Data Transmission
+
+The transmission mechanism relies on a dynamic sliding window that efficiently combines flow control and fast recovery techniques.
+
+## Sliding Window & Flow Control
+
+The sender continuously transmits packets, but the number of unacknowledged packets "in flight" is limited by:
+
+* `global_window_size` (network limit derived from the BDP calculation);
+* `peer_window` (actual free buffer space advertised by the receiver).
+
+Whenever the transmission window becomes full, the sender efficiently blocks using condition variables (`pthread_cond_wait`) until space becomes available again.
+
+## Out-of-Order Reception
+
+If the receiver obtains packets ahead of the expected sequence number (e.g., packet 3 while still expecting packet 2), those packets are not discarded.
+
+Instead, they are temporarily stored inside an `std::map out_of_order`, implementing a *Selective Repeat*-style behavior.
+
+## Fast Retransmit
+
+If the sender receives **three consecutive duplicate ACKs**, this indicates that the receiver successfully obtained later packets but is missing a specific packet.
+
+The sender immediately retransmits only the missing packet at the base of the transmission window, avoiding unnecessary retransmission of the entire window and eliminating the need to wait for a timeout.
+
+## Go-Back-N on Timeout
+
+If severe packet loss occurs and the main retransmission timer expires, the sender falls back to a Go-Back-N strategy.
+
+In this case, all currently unacknowledged packets within the transmission window are retransmitted as a safety mechanism.
+
+## Zero-Window Update
+
+If the receiving application consumes data slowly, the receiver buffer may become full.
+
+The receiver then advertises `recv_window = 0`, causing the sender to stop transmitting.
+
+Once the application reads data from the buffer (inside `recv_data()`), the receiver proactively sends a Window Update message, allowing the sender to immediately resume transmission without waiting for additional events.
