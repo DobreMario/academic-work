@@ -36,13 +36,44 @@ Acest repository conține proiectele practice realizate în timpul facultății,
 
 ---
 
-## 🧠 Observații
-- Materiile teoretice (analiză, algebră, ELTH etc.) nu sunt incluse cu proiecte, dar fac parte din parcursul academic.
-- Proiectele sunt organizate în foldere separate pe ani și semestre.
-- Limbaje folosite: C, ASM (x86), Python, VHDL, Bash
+## 📚 Anul II
+
+### Semestrul 1
+- **SO – Sisteme de Operare**
+  - Implementări în C: concepte fundamentale despre funcționarea unui OS (procese, thread-uri, sincronizare, gestiunea memoriei și a fișierelor)
+- **POO – Programare Orientată pe Obiecte**
+  - Aplicații în Java: bazele paradigmei OOP (încapsulare, moștenire, polimorfism, abstractizare) și concepte de Design Patterns
+- **PCLP5 – Programarea Calculatoarelor și Limbaje de Programare 5 (Limbaje Sigure)**
+  - Concepte avansate de memory safety, ownership, borrowing și concurență în Rust *(curs coordonat de prof. Alexandru Radovici)*
+- **DEEA – Dispozitive Electronice și Electronică Analogică**
+  - Circuite analogice: diode, tranzistoare, amplificatoare operaționale și filtre
+
+> Materii teoretice:
+- AA – Analiza Algoritmilor *(calculul complexității temporale și spațiale, paradigmele Greedy și Divide et Impera)*
+- Fizică *(concepte teoretice și experimente de laborator pe fizică nucleară)*
 
 ---
 
+### Semestrul 2
+- **PP – Paradigme de Programare**
+  - Programare funcțională pură și multiparadigmă: Racket și Haskell
+- **PCom – Protocoale de Comunicație**
+  - Protocoale de rețea din suita Internet (stiva TCP/IP, rutare, socket programming în C)
+- **PA – Proiectarea Algoritmilor**
+  - Tehnici avansate de algoritmică: programare dinamică, backtracking, algoritmi avansați pe grafuri
+- **SOC – Structura și Organizarea Calculatoarelor**
+  - Proiectare hardware în Verilog și implementare pe plăci FPGA la laborator
+
+> Materii teoretice:
+- MS – Modelare și Simulare *(probabilități, statistică aplicată și introducere în optimizare)*
+
+---
+
+## 🧠 Observații
+- Materiile teoretice (analiză, algebră, fizică, ELTH, MS etc.) nu conțin proiecte dedicate, dar fac parte integrantă din formarea academică.
+- Proiectele sunt organizate în foldere separate pe ani și semestre.
+- **Tehnologii & Limbaje folosite:** C, ASM (x86), Python, Java, Rust, Haskell, Racket, Verilog, Bash.
+
+---
 
 🔄 Repository actualizat constant pe măsură ce avansez cu studiile.
-
